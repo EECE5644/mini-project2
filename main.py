@@ -2,7 +2,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
 # ==================== Data Preprocessing ====================
 
 data = pd.read_csv(r"./insurance.csv")
