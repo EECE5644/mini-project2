@@ -28,7 +28,13 @@ correlated_matrix = data.corr()
 
 plt.figure(figsize=(10, 8))
 sns.heatmap(
-    correlated_matrix, annot=True, fmt=".2f", cmap="coolwarm", square=True, linewidths=0.5, cbar_kws={"shrink": 0.8}
+    correlated_matrix,
+    annot=True,
+    fmt=".2f",
+    cmap="coolwarm",
+    square=True,
+    linewidths=0.5,
+    cbar_kws={"shrink": 0.8},
 )
 plt.title("Correlation Heatmap of Insurance Features", fontsize=14)
 plt.tight_layout()
