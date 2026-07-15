@@ -20,7 +20,10 @@ data[bool_columns] = data[bool_columns].astype("int64")
 # data.info()
 
 # ---------- Save Cleaned Data
-data.to_csv(r"cleaned_data.csv", index=False)
+# data.to_csv(r"cleaned_data.csv", index=False)
+
+
+# ==================== Requirement 1 ====================
 
 # ----------- Correlation Matrix
 correlated_matrix = data.corr()
@@ -40,3 +43,26 @@ plt.title("Correlation Heatmap of Insurance Features", fontsize=14)
 plt.tight_layout()
 plt.savefig("correlation_heatmap.png", dpi=150)
 # plt.show()
+
+# ----------- Features and target relationship
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+sns.boxplot(data, x="smoker", y="charges", hue="smoker", ax=axes[0, 0], legend=False)
+axes[0, 0].set_title("Smoking Status vs Charges")
+axes[0, 0].set_xticklabels(["Non-Smoker", "Smoker"])
+
+sns.scatterplot(data, x="age", y="charges", hue="smoker", ax=axes[0, 1], alpha=0.6)
+axes[0, 1].set_title("Age vs Charges")
+
+sns.scatterplot(data, x="bmi", y="charges", hue="smoker", ax=axes[1, 0], alpha=0.6)
+axes[1, 0].set_title("BMI vs Charges")
+
+sns.histplot(data, x="charges", kde=True, bins=30, ax=axes[1, 1])
+axes[1, 1].set_title("Distribution of Charges")
+
+plt.tight_layout()
+plt.savefig("features_vs_charges.png", dpi=150)
+# plt.show()
+
+# Insight: The biggest factor is smoking status, followed by age and BMI.
+# When smoking status is considered, the fatter and older individuals tend to have higher medical costs.
