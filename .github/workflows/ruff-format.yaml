@@ -28,9 +28,17 @@ jobs:
         run: ruff format .
 
       - name: Run ruff check --fix
+        id: ruff_fix
+        continue-on-error: true
         run: ruff check --fix .
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "style: auto-format with ruff"
+
+      - name: Fail job if ruff check had unfixable errors
+        if: steps.ruff_fix.outcome == 'failure'
+        run: |
+          echo "::error::ruff check --fix still has unresolved errors, please check the log above"
+          exit 1
