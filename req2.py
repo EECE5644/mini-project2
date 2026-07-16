@@ -226,6 +226,8 @@ for name, config in configs.items():
 
 # ==================== Questions ====================
 
+# Recommendation: I would recommend using the decision tree model since it has the highest R2 score on the test set.
+
 # ---------- Polynomial Regression
 # The larger degree of the polynomial regression model may lead to overfitting,
 # as it can capture more complex relationships in the training data.
