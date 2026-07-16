@@ -1,11 +1,15 @@
 from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler, PolynomialFeatures
+from sklearn.preprocessing import (
+    OneHotEncoder,
+    OrdinalEncoder,
+    StandardScaler,
+    PolynomialFeatures,
+)
 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
@@ -41,7 +45,9 @@ data = pd.read_csv(r"./insurance.csv")
 features = data.drop(columns=["charges"])
 target = data["charges"]
 
-X_train, X_test, y_train, y_test = train_test_split(features, target, train_size=TRAIN_SIZE, random_state=RANDOM_SEED)
+X_train, X_test, y_train, y_test = train_test_split(
+    features, target, train_size=TRAIN_SIZE, random_state=RANDOM_SEED
+)
 
 target_scaler = StandardScaler()
 y_train = target_scaler.fit_transform(y_train.to_frame()).ravel()
@@ -52,8 +58,16 @@ y_test = target_scaler.transform(y_test.to_frame()).ravel()
 
 preprocessor = ColumnTransformer(
     transformers=[
-        ("binary", OrdinalEncoder(categories=[["female", "male"], ["no", "yes"]]), BINARY_COLS),
-        ("onehot", OneHotEncoder(drop="first", dtype="int64", sparse_output=False), ONEHOT_COLS),
+        (
+            "binary",
+            OrdinalEncoder(categories=[["female", "male"], ["no", "yes"]]),
+            BINARY_COLS,
+        ),
+        (
+            "onehot",
+            OneHotEncoder(drop="first", dtype="int64", sparse_output=False),
+            ONEHOT_COLS,
+        ),
         ("scaler", StandardScaler(), SCALER_COLS),
     ],
     remainder="passthrough",
@@ -61,7 +75,9 @@ preprocessor = ColumnTransformer(
 )
 
 preprocessor_single = ColumnTransformer(
-    transformers=[("binary", OrdinalEncoder(categories=[["no", "yes"]]), BEST_SINGLE_FEATURE)],
+    transformers=[
+        ("binary", OrdinalEncoder(categories=[["no", "yes"]]), BEST_SINGLE_FEATURE)
+    ],
     remainder="drop",
     verbose_feature_names_out=False,
 )
@@ -152,7 +168,11 @@ configs = {
 def grid_search(pipeline, param_grid, X_train, y_train):
     grid_search = GridSearchCV(pipeline, param_grid, cv=5, n_jobs=-1)
     grid_search.fit(X_train, y_train)
-    return grid_search.best_estimator_, grid_search.best_params_, grid_search.best_score_
+    return (
+        grid_search.best_estimator_,
+        grid_search.best_params_,
+        grid_search.best_score_,
+    )
 
 
 for name, config in configs.items():
@@ -160,10 +180,17 @@ for name, config in configs.items():
 
     run = None
     if wandb is not None:
-        run = wandb.init(project="mini-project2-insurance", name=name, group="model-comparison", dir="./wandb_logs")
+        run = wandb.init(
+            project="mini-project2-insurance",
+            name=name,
+            group="model-comparison",
+            dir="./wandb_logs",
+        )
 
     if config.param_grid:
-        pipeline, best_params, best_score = grid_search(pipeline, config.param_grid, X_train, y_train)
+        pipeline, best_params, best_score = grid_search(
+            pipeline, config.param_grid, X_train, y_train
+        )
         print(f"{name}: Best Params: {best_params}, Best CV R2 Score: {best_score}")
         if run is not None:
             run.config.update(best_params)
