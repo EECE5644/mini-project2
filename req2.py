@@ -16,6 +16,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor, plot_tree
+from sklearn.metrics import mean_absolute_error, mean_squared_error, root_mean_squared_error, r2_score
 
 try:
     import wandb
@@ -183,6 +184,7 @@ def grid_search(pipeline, param_grid, X_train, y_train):
 for name, config in configs.items():
     pipeline = config.pipeline
 
+    # wandb = None
     run = None
     if wandb is not None:
         run = wandb.init(
@@ -203,13 +205,17 @@ for name, config in configs.items():
     else:
         pipeline.fit(X_train, y_train)
 
-    score = pipeline.score(X_test, y_test)
-    print(f"{name}: R2 Score on test set: {score}")
+    y_pred = pipeline.predict(X_test)
+    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+    mse = mean_squared_error(y_test, y_pred)
+    rmse = root_mean_squared_error(y_test, y_pred)
+    print(f"{name}: R2={r2:.4f}, MAE={mae:.4f}, MSE={mse:.4f}, RMSE={rmse:.4f}")
 
     fitted_models[name] = pipeline
 
     if run is not None:
-        run.log({"test_r2": score})
+        run.log({"test_r2": r2, "test_mae": mae, "test_mse": mse, "test_rmse": rmse})
         run.finish()
 
 
@@ -226,7 +232,7 @@ lasso_pipeline: Pipeline = fitted_models["Lasso"]
 lasso_model: Lasso = lasso_pipeline.named_steps["model"]
 lasso_preprocessor: ColumnTransformer = lasso_pipeline.named_steps["preprocessor"]
 
-lasso_feature_names = lasso_model._parameter_constraints
+lasso_feature_names = lasso_preprocessor.get_feature_names_out()
 lasso_coefs = lasso_model.coef_
 
 for feature_name, coef in zip(lasso_feature_names, lasso_coefs):
