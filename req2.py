@@ -16,7 +16,12 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor, plot_tree
-from sklearn.metrics import mean_absolute_error, mean_squared_error, root_mean_squared_error, r2_score
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    root_mean_squared_error,
+    r2_score,
+)
 
 try:
     import wandb
