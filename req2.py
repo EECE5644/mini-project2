@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -14,7 +15,7 @@ from sklearn.preprocessing import (
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import DecisionTreeRegressor, plot_tree
 
 try:
     import wandb
@@ -165,6 +166,10 @@ configs = {
 
 
 # ==================== Training & Evaluation ====================
+
+fitted_models = {}
+
+
 def grid_search(pipeline, param_grid, X_train, y_train):
     grid_search = GridSearchCV(pipeline, param_grid, cv=5, n_jobs=-1)
     grid_search.fit(X_train, y_train)
@@ -201,6 +206,47 @@ for name, config in configs.items():
     score = pipeline.score(X_test, y_test)
     print(f"{name}: R2 Score on test set: {score}")
 
+    fitted_models[name] = pipeline
+
     if run is not None:
         run.log({"test_r2": score})
         run.finish()
+
+
+# ==================== Questions ====================
+
+# ---------- Polynomial Regression
+# The larger degree of the polynomial regression model may lead to overfitting,
+# as it can capture more complex relationships in the training data.
+# This can also result in poor generalization to unseen data,
+# leading to lower performance on the test set.
+
+# ---------- Which features did Lasso eliminate?
+lasso_pipeline: Pipeline = fitted_models["Lasso"]
+lasso_model: Lasso = lasso_pipeline.named_steps["model"]
+lasso_preprocessor: ColumnTransformer = lasso_pipeline.named_steps["preprocessor"]
+
+lasso_feature_names = lasso_model._parameter_constraints
+lasso_coefs = lasso_model.coef_
+
+for feature_name, coef in zip(lasso_feature_names, lasso_coefs):
+    print(f"{feature_name}: {coef:.4f}")
+
+eliminated_features = lasso_feature_names[lasso_coefs == 0]
+print("Features eliminated by Lasso:", list(eliminated_features))
+
+# ---------- Visualize the Decision Tree
+dt_pipeline: Pipeline = fitted_models["Decision Tree"]
+dt_model: DecisionTreeRegressor = dt_pipeline.named_steps["model"]
+dt_preprocessor: ColumnTransformer = dt_pipeline.named_steps["preprocessor"]
+dt_feature_names = dt_preprocessor.get_feature_names_out()
+
+plt.figure(figsize=(20, 10))
+plot_tree(
+    dt_model,
+    feature_names=dt_feature_names.tolist(),
+    filled=True,
+    rounded=True,
+    fontsize=10,
+)
+plt.savefig("decision_tree.png", dpi=150, bbox_inches="tight")
